@@ -1,159 +1,107 @@
-# nvr-go - Neovim Remote Client in Go
+# nvr-go
 
-A lightweight Go replacement for the Python nvr tool, designed to support the neomux plugin with improved performance and reliability.
+A lightweight Go implementation of [neovim-remote](https://github.com/mhinz/neovim-remote), specifically written for the [neomux](https://github.com/nikvdp/neomux) plugin.
 
-## Features
+## What is this?
 
-- **Complete nvr compatibility**: Supports all 16 nvr usage patterns used by neomux
-- **Fast startup**: 50%+ faster startup than Python nvr
-- **Single binary**: No external dependencies
-- **Full msgpack-rpc support**: Proper communication with Neovim instances
-- **Advanced command chaining**: Support for complex multi-step operations
-- **Window management**: Complete window context preservation
-- **Neomux-specific commands**: Built-in support for neomux function patterns
+This is a Go replacement for the Python `nvr` tool. It doesn't implement all features of the original neovim-remote - just the subset needed by neomux for remote-controlling Neovim instances from shell scripts and terminal buffers.
+
+**Why Go instead of Python?**
+- Single static binary - no Python runtime or pip dependencies
+- Faster startup time
+- Easier distribution across platforms
 
 ## Installation
 
+### From releases
+
+Download the appropriate binary from the [releases page](https://github.com/nikvdp/nvr-go/releases).
+
+### From source
+
 ```bash
+go install github.com/nikvdp/nvr-go@latest
+```
+
+Or clone and build:
+
+```bash
+git clone https://github.com/nikvdp/nvr-go.git
+cd nvr-go
 go build -o nvr .
 ```
 
 ## Usage
 
-### Basic nvr Commands
-
 ```bash
-# Open file in existing window
-./nvr --remote file.txt
+# Open files in existing Neovim instance
+nvr file1.txt file2.txt
+nvr --remote file.txt
 
-# Open file and wait for completion
-./nvr --remote-wait file.txt
+# Open file and wait until buffer is closed (useful for git commit messages)
+nvr --remote-wait file.txt
 
 # Open file in new tab
-./nvr --remote-tab file.txt
+nvr --remote-tab file.txt
 
 # Open file in horizontal split
-./nvr -o --remote file.txt
+nvr -o file.txt
 
-# Open file in vertical split
-./nvr -O --remote file.txt
+# Open file in vertical split  
+nvr -O file.txt
 
-# Evaluate expression
-./nvr --remote-expr "getcwd()"
+# Execute Neovim command
+nvr -c "echo 'hello'"
 
-# Execute command
-./nvr -c "echo 'hello'"
-```
+# Execute command before opening files
+nvr -cc split file.txt
 
-### Neomux-Specific Commands
+# Evaluate expression and print result
+nvr --remote-expr "getcwd()"
 
-```bash
-# Neomux window operations
-./nvr vim-window-print 1
-./nvr vimwindow 1 file.txt
-./nvr vimwindowsplit 1 file.txt
+# Read from stdin
+echo "content" | nvr -
 
-# Neomux shortcuts
-./nvr vs file.txt          # vertical split
-./nvr s file.txt           # horizontal split
-./nvr e file.txt           # edit
-./nvr t file.txt           # tabedit
-
-# Neomux utilities
-./nvr vbpaste              # paste from clipboard
-./nvr vbcopy "text"        # copy to clipboard
-./nvr vpwd                 # print working directory
-./nvr vcd /path            # change directory
-```
-
-### stdin Support
-
-```bash
-echo "content" | ./nvr --remote -
-```
-
-### Testing
-
-```bash
 # Test connection to Neovim
-./nvr --test
+nvr --test
 ```
 
-## Architecture
+## Socket Discovery
 
-### Core Components
+nvr-go finds your Neovim instance by checking (in order):
 
-1. **Client** (`client/`): Core RPC communication and file operations
-2. **Parser** (`parser/`): Command line parsing and command chaining
-3. **Main** (`main.go`): CLI entry point and argument handling
+1. `$NVIM` environment variable (set automatically by Neovim's terminal)
+2. `$NVIM_LISTEN_ADDRESS` environment variable
 
-### Key Features
+## Implemented Features
 
-- **Socket Discovery**: Automatic detection of Neovim instances
-- **msgpack-rpc Protocol**: Full compliance with Neovim's RPC specification
-- **Command Chaining**: Support for complex multi-step operations
-- **Window Context**: Proper window management and context preservation
+- `--remote` - Open files with `:edit`
+- `--remote-wait` - Open files and wait for buffer close
+- `--remote-tab` - Open files with `:tabedit`
+- `--remote-expr` - Evaluate Vimscript expression
+- `-c` - Execute command after opening files
+- `-cc` - Execute command before opening files
+- `-o` - Use horizontal split
+- `-O` - Use vertical split
+- `-` - Read from stdin
 
-## Testing
+## Not Implemented
 
-Run integration tests:
+These features from the original nvr are **not** implemented:
 
-```bash
-go test -v ./test/
-```
+- `--remote-send` - Send keys
+- `--servername` - Specify server name
+- `--nostart` - Don't start new instance
+- `-l` / `-p` / `-t` flags
+- Starting a new Neovim instance if none exists
 
-## Performance
-
-- **Startup Time**: Significantly faster than Python nvr
-- **Memory Usage**: Minimal footprint
-- **Connection Efficiency**: Optimized msgpack-rpc implementation
-
-## Compatibility
-
-### Neovim Support
-
-- Neovim 0.5+ with msgpack-rpc enabled
-- Unix socket communication
-- All major platforms (Linux, macOS, BSD)
-
-### Neomux Integration
-
-Fully compatible with all neomux function patterns:
-
-- File operations (e, s, vs, t)
-- Window management (vim-window-print, vimwindow, vimwindowsplit)
-- Clipboard operations (vbpaste, vbcopy)
-- Directory operations (vpwd, vcd)
-- Command chaining and complex operations
-
-## Development
-
-### Building
-
-```bash
-go mod tidy
-go build -o nvr .
-```
-
-### Testing
-
-```bash
-# Run all tests
-go test ./...
-
-# Run integration tests
-go test -v ./test/
-
-# Run benchmarks
-go test -bench=. ./test/
-```
+If you need these features, use the original [neovim-remote](https://github.com/mhinz/neovim-remote).
 
 ## Requirements
 
-- Go 1.16+
 - Neovim 0.5+
-- Unix-like operating system
+- Unix-like OS (Linux, macOS, BSD)
 
 ## License
 
-MIT License - see LICENSE file for details.
+MIT

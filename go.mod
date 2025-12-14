@@ -1,4 +1,4 @@
-module github.com/neomux/nvr-go
+module github.com/nikvdp/nvr-go
 
 go 1.22.3
 

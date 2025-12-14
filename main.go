@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"github.com/neomux/nvr-go/client"
-	"github.com/neomux/nvr-go/parser"
+	"github.com/nikvdp/nvr-go/client"
+	"github.com/nikvdp/nvr-go/parser"
 )
 
 type CLIArgs = parser.CLIArgs
